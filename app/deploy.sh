@@ -5,12 +5,17 @@ set -e
 APP_DIR="/root/app"
 sudo mkdir -p $APP_DIR
 
-# Install system dependencies
-bash ./install_dependencies.sh
+# Copy all files to the app directory if they're not already there
+cp -r ./* $APP_DIR/ || true
 
-# Install Python 3.11 (since 3.12 is not available in debian bookworm)
+# Update package list and install system dependencies
 sudo apt-get update
-sudo apt-get install -y python3.11 python3.11-venv python3-pip python3-full
+sudo apt-get install -y \
+    python3.11 \
+    python3.11-venv \
+    python3-pip \
+    python3-full \
+    curl
 
 # Create and activate virtual environment
 cd $APP_DIR

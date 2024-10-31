@@ -74,4 +74,4 @@ jobs:
         # Execute deployment script
         gcloud compute ssh ${{ secrets.GCP_INSTANCE_NAME }} \
           --zone=${{ secrets.GCP_ZONE }} \
-          --command='cd ~/app && chmod +x scripts/deploy.sh && sudo ./scripts/deploy.sh'
+          --command='cd ~/app && chmod +x deploy.sh && sudo ./deploy.sh'
