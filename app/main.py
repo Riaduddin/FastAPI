@@ -4,7 +4,7 @@ app = FastAPI()
 
 @app.get("/")
 def read_root():
-    return {"message": "Hello, World!"}
+    return {"message": "Hello, World! Do you know Kibra is a AD. He hates Devops. Unfortunately he is now Additional devops "}
 
 @app.get("/health")
 async def health_check():
