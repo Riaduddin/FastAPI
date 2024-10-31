@@ -1,34 +1,52 @@
 #!/bin/bash
+set -e
 
-# Go to app directory
-cd ~/app
+# Create app directory in the correct location
+APP_DIR="/root/app"
+sudo mkdir -p $APP_DIR
 
-# Install dependencies
-chmod +x scripts/install_dependencies.sh
-./scripts/install_dependencies.sh
+# Install system dependencies
+bash ./install_dependencies.sh
 
-# Create systemd service file
-sudo tee /etc/systemd/system/fastapi.service << EOF
+# Install Python 3.11 (since 3.12 is not available in debian bookworm)
+sudo apt-get update
+sudo apt-get install -y python3.11 python3.11-venv python3-pip python3-full
+
+# Create and activate virtual environment
+cd $APP_DIR
+python3.11 -m venv venv
+source venv/bin/activate
+
+# Install Python dependencies
+pip install --no-cache-dir -r requirements.txt
+
+# Setup systemd service
+cat > /etc/systemd/system/fastapi.service << EOF
 [Unit]
 Description=FastAPI application
 After=network.target
 
 [Service]
-User=$USER
-Group=$USER
-WorkingDirectory=/home/$USER/app
-Environment="PATH=/home/$USER/app/venv/bin"
-ExecStart=/home/$USER/app/venv/bin/gunicorn -w 4 -k uvicorn.workers.UvicornWorker app.main:app --bind 0.0.0.0:8000
+User=root
+Group=root
+WorkingDirectory=$APP_DIR
+Environment="PATH=$APP_DIR/venv/bin"
+ExecStart=$APP_DIR/venv/bin/gunicorn -w 4 -k uvicorn.workers.UvicornWorker app.main:app --bind 0.0.0.0:8000
 
 [Install]
 WantedBy=multi-user.target
 EOF
 
-# Reload systemd daemon and restart service
-sudo systemctl daemon-reload
-sudo systemctl restart fastapi
-sudo systemctl enable fastapi
+# Reload systemd and start service
+systemctl daemon-reload
+systemctl enable fastapi
+systemctl start fastapi
 
-# Run health check
-chmod +x scripts/health_check.sh
-./scripts/health_check.sh
+# Wait for service to start and check health
+sleep 5
+if curl -f http://localhost:8000/health; then
+    echo "Application deployed successfully"
+else
+    echo "Application is not healthy"
+    exit 1
+fi
