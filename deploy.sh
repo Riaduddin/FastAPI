@@ -47,11 +47,20 @@ systemctl daemon-reload
 systemctl enable fastapi
 systemctl start fastapi
 
-# Wait for service to start and check health
-sleep 5
-if curl -f http://localhost:8000/health; then
-    echo "Application deployed successfully"
-else
-    echo "Application is not healthy"
-    exit 1
-fi
+# Wait for service to start and check health with retries
+echo "Waiting for application to start..."
+for i in {1..12}; do
+    echo "Attempt $i of 12..."
+    if curl -f http://localhost:8000/health; then
+        echo "Application deployed successfully"
+        exit 0
+    fi
+    sleep 5
+done
+
+echo "Application is not healthy after 60 seconds"
+echo "Checking service status..."
+systemctl status fastapi
+echo "Checking logs..."
+journalctl -u fastapi -n 50
+exit 1
