@@ -36,14 +36,17 @@ jobs:
       uses: 'google-github-actions/auth@v1'
       with: 
         credentials_json: '${{ secrets.GCP_SA_KEY}}'
+        project_id: '${{ secrets.GCP_PROJECT_ID }}'
 
     
     - name: Set up Cloud SDK
       uses: google-github-actions/setup-gcloud@v1
-      
-    - name: 'Configure Project'
+
+    # Verify Google Cloud configuration
+    - name: 'Verify Google Cloud configuration'
       run: |
-        gcloud config set project ${{ secrets.GCP_PROJECT_ID }}
+        echo "Active project: $(gcloud config get-value project)"
+        gcloud auth list
 
     - name: 'Generate SSH key'
       run: |
