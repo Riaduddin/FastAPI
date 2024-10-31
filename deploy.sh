@@ -45,7 +45,7 @@ EOF
 # Reload systemd and start service
 systemctl daemon-reload
 systemctl enable fastapi
-systemctl start fastapi
+systemctl restart fastapi
 
 # Wait for service to start and check health with retries
 echo "Waiting for application to start..."
