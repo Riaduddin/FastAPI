@@ -1,5 +1,5 @@
 import os
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException,Request
 from pydantic_settings import BaseSettings
 from functools import lru_cache
 
@@ -9,7 +9,7 @@ class Settings(BaseSettings):
     admin_email: str
     database_url: str
     secret_key: str
-    allowed_hosts: list=["*"]
+    allowed_hosts: list[str]=["*"]
     debug: bool= False
 
     class Config:
@@ -17,12 +17,12 @@ class Settings(BaseSettings):
 
 @lru_cache()
 def get_settings():
-    return Settings
+    return Settings()
 
 app=FastAPI()
 
 @app.middleware("http")
-async def validate_host(request,call_next):
+async def validate_host(request: Request,call_next):
     settings=get_settings()
     host=request.headers.get("host","").split(":")[0]
     if settings.debug or host or settings.allowed_hosts:
@@ -41,4 +41,4 @@ async def info():
 
 if __name__=="__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0",port=8000)
+    uvicorn.run(app, host="127.0.0.1",port=8080,reload=True)
